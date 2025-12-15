@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
@@ -79,5 +80,35 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         };
 
         return repository.findAll(spec);
+    }
+
+    @Override
+    public Optional<PurchaseOrder> getPurchaseOrderById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public PurchaseOrder updatePurchaseOrder(Long id, PurchaseOrder purchaseOrder) {
+        PurchaseOrder existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada con ID: " + id));
+
+        // Actualizar campos permitidos
+        existing.setSupplierName(purchaseOrder.getSupplierName());
+        existing.setStatus(purchaseOrder.getStatus());
+        existing.setTotalAmount(purchaseOrder.getTotalAmount());
+        existing.setCurrency(purchaseOrder.getCurrency());
+        existing.setExpectedDeliveryDate(purchaseOrder.getExpectedDeliveryDate());
+
+        // Nota: orderNumber y createdAt generalmente no se actualizan
+
+        return repository.save(existing);
+    }
+
+    @Override
+    public void deletePurchaseOrder(Long id) {
+        if (!repository.existsById(id)) {
+            throw new IllegalArgumentException("No se puede eliminar. Orden no encontrada con ID: " + id);
+        }
+        repository.deleteById(id);
     }
 }

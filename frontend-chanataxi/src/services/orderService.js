@@ -17,3 +17,13 @@ export const createOrder = async (orderData) => {
     const response = await axios.post(API_URL, orderData);
     return response.data;
 };
+
+// NUEVOS MÉTODOS
+export const updateOrder = async (id, orderData) => {
+    const response = await axios.put(`${API_URL}/${id}`, orderData);
+    return response.data;
+};
+
+export const deleteOrder = async (id) => {
+    await axios.delete(`${API_URL}/${id}`);
+};

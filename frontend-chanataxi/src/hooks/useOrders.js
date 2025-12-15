@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getOrders, createOrder } from '../services/orderService';
+import { getOrders, createOrder, updateOrder, deleteOrder } from '../services/orderService';
 
 export const useOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -36,10 +36,31 @@ export const useOrders = () => {
         }
     };
 
+    // NUEVOS MÉTODOS PARA EL HOOK
+    const editOrder = async (id, updatedData) => {
+        try {
+            await updateOrder(id, updatedData);
+            await fetchOrders();
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.response?.data || err.message };
+        }
+    };
+
+    const removeOrder = async (id) => {
+        if(!window.confirm("¿Estás seguro de eliminar esta orden?")) return;
+        try {
+            await deleteOrder(id);
+            await fetchOrders();
+        } catch (err) {
+            alert(err.response?.data || "Error al eliminar");
+        }
+    };
+
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
     };
 
-    return { orders, loading, error, filters, handleFilterChange, addOrder };
+    return { orders, loading, error, filters, handleFilterChange, addOrder, editOrder, removeOrder };
 };

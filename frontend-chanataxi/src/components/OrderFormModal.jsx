@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 
-const OrderFormModal = ({ show, onHide, onSubmit }) => {
-    // Estado inicial con todos los campos requeridos
+const OrderFormModal = ({ show, onHide, onSubmit, orderToEdit }) => {
     const initialState = {
         orderNumber: '', 
         supplierName: '', 
@@ -15,16 +14,25 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
     const [formData, setFormData] = useState(initialState);
     const [errorMsg, setErrorMsg] = useState(null);
 
+    // Cargar datos si estamos editando
+    useEffect(() => {
+        if (orderToEdit) {
+            setFormData(orderToEdit);
+        } else {
+            setFormData(initialState);
+        }
+        setErrorMsg(null);
+    }, [orderToEdit, show]);
+
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleSubmit = async () => {
         const result = await onSubmit(formData);
         if (result.success) {
-            setFormData(initialState); // Limpiar formulario al guardar
+            setFormData(initialState);
             setErrorMsg(null);
             onHide();
         } else {
-            // Mostrar errores del backend
             setErrorMsg(result.error); 
         }
     };
@@ -32,10 +40,9 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
     return (
         <Modal show={show} onHide={onHide}>
             <Modal.Header closeButton>
-                <Modal.Title>Nueva Orden</Modal.Title>
+                <Modal.Title>{orderToEdit ? 'Editar Orden' : 'Nueva Orden'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                {/* Mostrar alerta si hay errores */}
                 {errorMsg && (
                     <Alert variant="danger">
                         {typeof errorMsg === 'object' 
@@ -45,7 +52,6 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
                 )}
                 
                 <Form>
-                    {/* Fila 1: Número de Orden y Proveedor */}
                     <Row className="mb-3">
                         <Col>
                             <Form.Label>N° Orden</Form.Label>
@@ -53,7 +59,9 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
                                 name="orderNumber" 
                                 value={formData.orderNumber}
                                 placeholder="Ej: PO-001" 
-                                onChange={handleChange} 
+                                onChange={handleChange}
+                                // Deshabilitar edición del número de orden si es update (opcional)
+                                disabled={!!orderToEdit}
                             />
                         </Col>
                         <Col>
@@ -67,7 +75,6 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
                         </Col>
                     </Row>
 
-                    {/* Fila 2: Estado y Moneda */}
                     <Row className="mb-3">
                         <Col>
                             <Form.Label>Estado</Form.Label>
@@ -88,7 +95,6 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
                         </Col>
                     </Row>
 
-                    {/* Fila 3: Monto Total y Fecha de Entrega (LOS QUE FALTABAN) */}
                     <Row className="mb-3">
                         <Col>
                             <Form.Label>Monto Total</Form.Label>
@@ -115,7 +121,9 @@ const OrderFormModal = ({ show, onHide, onSubmit }) => {
             </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={onHide}>Cancelar</Button>
-                <Button variant="primary" onClick={handleSubmit}>Guardar</Button>
+                <Button variant="primary" onClick={handleSubmit}>
+                    {orderToEdit ? 'Actualizar' : 'Guardar'}
+                </Button>
             </Modal.Footer>
         </Modal>
     );
